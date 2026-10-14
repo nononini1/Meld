@@ -152,6 +152,9 @@ fun TopPlaylistScreen(
             song.title.contains(query.text, true) ||
                 song.artists.any { it.name.contains(query.text, true) }
         } ?: emptyList()
+    }.let { list ->
+        // Defensive dedup: duplicate song ids would crash LazyColumn keyed lists
+        list.distinctBy { it.id }
     }
 
     LaunchedEffect(filteredSongs) {
@@ -305,7 +308,7 @@ fun TopPlaylistScreen(
                 if (filteredSongs.isNotEmpty()) {
                     itemsIndexed(
                         items = filteredSongs,
-                        key = { _, song -> song.id },
+                        key = { index, song -> "${song.id}_$index" },
                     ) { index, song ->
                         val onCheckedChange: (Boolean) -> Unit = {
                             if (it) {

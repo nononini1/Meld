@@ -137,7 +137,9 @@ fun AlbumScreen(
             if (hideVideoSongs) {
                 songs = songs.filter { !it.song.isVideo }
             }
-            songs
+            // Deduplicate by song id so LazyColumn keys stay unique even if the
+            // database returns duplicate rows (e.g. stale song_album_map entries)
+            songs.distinctBy { it.id }
         }
 
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
@@ -417,7 +419,7 @@ fun AlbumScreen(
             if (filteredSongs.isNotEmpty()) {
                 itemsIndexed(
                     items = filteredSongs,
-                    key = { _, song -> song.id },
+                    key = { index, song -> "${song.id}_$index" },
                 ) { index, song ->
                     val onCheckedChange: (Boolean) -> Unit = {
                         if (it) {
